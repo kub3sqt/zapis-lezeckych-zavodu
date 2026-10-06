@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       if (err.message.includes('Password not set') || err.message.includes('needsPassword')) {
         errorEl.textContent = 'Nemáte nastavené heslo. Klikněte na "Nastavte si ho".';
+      } else if (err.message === 'Unauthorized') {
+        errorEl.textContent = 'Nesprávný e-mail nebo heslo';
       } else {
         errorEl.textContent = err.message || 'Chyba při přihlašování';
       }

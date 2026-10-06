@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const girlCount = data.girls ? data.girls.length : 0;
         const card = document.createElement('div');
         card.className = 'category-card';
-        card.innerHTML = `<div class="cat-name">${cat}</div><div class="cat-count">${boyCount} / ${girlCount}</div>`;
+        card.innerHTML = `<div class="cat-name">${cat}</div><div class="cat-count"><span class="cnt-boys" title="Kluci">♂ ${boyCount}</span><span class="cnt-girls" title="Dívky">♀ ${girlCount}</span></div>`;
         card.addEventListener('click', () => {
           document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
           card.classList.add('active');
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const girlCount = data.girls ? data.girls.length : 0;
         const card = document.createElement('div');
         card.className = 'category-card';
-        card.innerHTML = `<div class="cat-name">${cat}</div><div class="cat-count">${boyCount} / ${girlCount}</div>`;
+        card.innerHTML = `<div class="cat-name">${cat}</div><div class="cat-count"><span class="cnt-boys" title="Kluci">♂ ${boyCount}</span><span class="cnt-girls" title="Dívky">♀ ${girlCount}</span></div>`;
         card.addEventListener('click', () => {
           document.querySelectorAll('.category-card').forEach(c => c.classList.remove('active'));
           card.classList.add('active');
@@ -172,8 +172,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderRankingTable(category, title, rankings, badgeClass) {
-    let html = `<div class="card mb-16"><div class="card-header"><h2>${category} — ${title}</h2></div>`;
-    html += '<div class="table-wrap"><table><thead><tr><th>#</th><th>Jméno</th><th>Body</th><th>Pokusy</th><th>Topy</th></tr></thead><tbody>';
+    let html = `<div class="card mb-16"><div class="card-header"><h2>${category} <span class="badge ${badgeClass}">${title}</span></h2><span class="text-muted text-sm">${rankings.length} závodníků</span></div>`;
+    html += '<div class="table-wrap"><table><thead><tr><th>#</th><th>Jméno</th><th class="num">Body</th><th class="num">Pokusy</th><th class="num">Topy</th></tr></thead><tbody>';
 
     rankings.forEach((r, i) => {
       const rank = i + 1;
@@ -182,12 +182,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       else if (rank === 2) rankClass = 'rank-2';
       else if (rank === 3) rankClass = 'rank-3';
 
-      html += `<tr>
+      html += `<tr class="${rank <= 3 ? 'podium-' + rank : ''}">
         <td><span class="rank-badge ${rankClass}">${rank}</span></td>
         <td><strong>${r.first_name} ${r.last_name}</strong></td>
-        <td><strong style="color:var(--accent-light)">${r.totalPoints}</strong></td>
-        <td>${r.totalAttempts}</td>
-        <td>${r.totalTops}</td>
+        <td class="num"><span class="pts">${r.totalPoints}</span></td>
+        <td class="num">${r.totalAttempts}</td>
+        <td class="num">${r.totalTops}</td>
       </tr>`;
     });
 

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Výsledky | Lezecké závody</title>
+  <meta name="description" content="Veřejné výsledky lezeckých závodů">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <div class="app-header no-print">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1>🧗 Výsledky závodů</h1>
+          <p class="subtitle">Veřejná výsledková listina</p>
+        </div>
+        <a href="startlist.html" class="btn btn-ghost no-print">📋 Moje startovka</a>
+      </div>
+    </div>
+
+    <div class="tabs mb-16" id="viewTabs">
+      <button class="tab active" data-view="competitions">Závody</button>
+      <button class="tab" data-view="seasons">Celkové výsledky</button>
+    </div>
+
+    <div id="view-competitions">
+      <div id="compSelect" class="mb-24">
+        <div class="input-group">
+          <label>Závod</label>
+          <select id="competitionSelect">
+            <option value="">Vyberte závod...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-seasons" class="hidden">
+      <div id="seasonSelectWrapper" class="mb-24">
+        <div class="input-group">
+          <label>Série</label>
+          <select id="seasonSelect">
+            <option value="">Vyberte sérii...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="categoriesGrid" class="grid grid-3 mb-24"></div>
+    <div id="resultsArea"></div>
+
+
+  </div>
+
+  <script src="js/api.js?v=2"></script>
+  <script src="js/public.js"></script>
+</body>
+</html>

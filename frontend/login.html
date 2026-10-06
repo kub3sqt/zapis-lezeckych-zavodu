@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Přihlášení | Lezecké závody</title>
+  <meta name="description" content="Přihlášení do systému pro správu lezeckých závodů">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="card login-card">
+      <div class="text-center mb-24">
+        <h1 style="font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,var(--accent-light),var(--success));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">🧗 Lezecké závody</h1>
+        <p class="text-muted text-sm mt-8">Přihlášení pro administrátory a zapisovače</p>
+      </div>
+
+      <div id="loginForm">
+        <div class="input-group">
+          <label>E-mail</label>
+          <input type="email" id="email" placeholder="vas@email.cz" autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label>Heslo</label>
+          <input type="password" id="password" placeholder="••••••" autocomplete="current-password">
+        </div>
+        <div id="loginError" class="text-danger text-sm mb-12 hidden"></div>
+        <button class="btn btn-primary btn-block btn-lg" id="loginBtn">Přihlásit se</button>
+        <p class="text-center text-muted text-sm mt-16">
+          Nemáte heslo? <a href="#" id="showSetPassword" style="color:var(--accent-light)">Nastavte si ho</a>
+        </p>
+      </div>
+
+      <div id="setPasswordForm" class="hidden">
+        <div class="input-group">
+          <label>E-mail (přidaný administrátorem)</label>
+          <input type="email" id="spEmail" placeholder="vas@email.cz">
+        </div>
+        <div class="input-group">
+          <label>Nové heslo (min. 6 znaků)</label>
+          <input type="password" id="spPassword" placeholder="••••••">
+        </div>
+        <div class="input-group">
+          <label>Heslo znovu</label>
+          <input type="password" id="spPassword2" placeholder="••••••">
+        </div>
+        <div id="spError" class="text-danger text-sm mb-12 hidden"></div>
+        <button class="btn btn-primary btn-block btn-lg" id="setPasswordBtn">Nastavit heslo a přihlásit</button>
+        <p class="text-center text-muted text-sm mt-16">
+          <a href="#" id="showLogin" style="color:var(--accent-light)">Zpět na přihlášení</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js?v=2"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

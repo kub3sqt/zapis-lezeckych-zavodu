@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Lezecké závody</title>
+  <meta name="description" content="Administrace lezeckých závodů">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <div class="print-only print-header">
+      <div class="flex justify-between items-center">
+        <h1 id="printTitle">Výsledky</h1>
+        <div id="printDate" style="font-size: 12px; color: #555;"></div>
+      </div>
+    </div>
+    <div class="app-header no-print">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1>🧗 Admin panel</h1>
+          <p class="subtitle" id="userInfo"></p>
+        </div>
+        <button class="btn btn-ghost btn-sm no-print" id="logoutBtn">Odhlásit</button>
+      </div>
+    </div>
+
+    <div class="tabs no-print" id="mainTabs">
+      <button class="tab active" data-tab="competitions">Závody</button>
+      <button class="tab" data-tab="seasons">Série závodů</button>
+      <button class="tab" data-tab="registration">Registrace</button>
+      <button class="tab" data-tab="results">Výsledky</button>
+      <button class="tab" data-tab="overall">Celkové výsledky</button>
+      <button class="tab" data-tab="users">Uživatelé</button>
+      <button class="tab" data-tab="recording">Zapisování</button>
+    </div>
+
+    <!-- Competitions Tab -->
+    <div id="tab-competitions" class="tab-content">
+      <div class="card mb-16">
+        <div class="card-header">
+          <h2>Závody</h2>
+          <button class="btn btn-primary btn-sm" id="newCompBtn">+ Nový závod</button>
+        </div>
+        <div id="competitionsList"></div>
+      </div>
+      <div id="compEditor" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2 id="compEditorTitle">Nový závod</h2>
+            <button class="btn btn-ghost btn-sm" id="closeCompEditor">✕</button>
+          </div>
+          <div class="input-group">
+            <label>Název závodu</label>
+            <input type="text" id="compName" placeholder="Např. JBP LIMIT">
+          </div>
+          <div class="input-group">
+            <label>Datum</label>
+            <input type="date" id="compDate">
+          </div>
+          <div class="input-group">
+            <label>Kategorie</label>
+            <div class="grid grid-3 gap-8" id="catCheckboxes">
+              <label class="flex items-center gap-8" style="cursor:pointer"><input type="checkbox" value="U9">
+                U9</label>
+              <label class="flex items-center gap-8" style="cursor:pointer"><input type="checkbox" value="U11">
+                U11</label>
+              <label class="flex items-center gap-8" style="cursor:pointer"><input type="checkbox" value="U13">
+                U13</label>
+              <label class="flex items-center gap-8" style="cursor:pointer"><input type="checkbox" value="U15">
+                U15</label>
+              <label class="flex items-center gap-8" style="cursor:pointer"><input type="checkbox" value="U17">
+                U17</label>
+              <label class="flex items-center gap-8" style="cursor:pointer"><input type="checkbox" value="U19">
+                U19</label>
+            </div>
+          </div>
+          <div id="boulderConfig" class="hidden">
+            <h3 class="mb-12">Nastavení boulderů</h3>
+            <div id="boulderCatTabs" class="tabs mb-12"></div>
+            <div id="boulderGenderTabs" class="tabs mb-12" style="max-width:250px">
+              <button class="tab active" data-gender="girls">Dívky</button>
+              <button class="tab" data-gender="boys">Kluci</button>
+            </div>
+            <p class="text-muted text-xs mb-8">Klikněte nebo táhněte pro výběr boulderů (1-30)</p>
+            <div id="boulderGrid" class="grid grid-6 gap-8 boulder-grid-select mb-16"></div>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-primary" id="saveCompBtn">Uložit</button>
+            <button class="btn btn-ghost" id="cancelCompBtn">Zrušit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Tab -->
+    <div id="tab-registration" class="tab-content hidden">
+      <div class="card mb-16">
+        <div class="card-header">
+          <h2>Registrace závodníků</h2>
+        </div>
+        <div class="alert alert-warning mb-16" style="background:var(--bg-card);border:1px solid #eab308;color:#eab308;padding:12px;border-radius:4px;">
+          <strong>⚠️ Důležité:</strong> Registruj celá a správně zapsaná jména dětí, bez přezdívek a zdrobnělin.
+        </div>
+        <div class="input-group">
+          <label>Aktivní závod</label>
+          <select id="regCompSelect">
+            <option value="">Vyberte závod...</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Kategorie</label>
+          <select id="regCatSelect">
+            <option value="">Vyberte kategorii...</option>
+          </select>
+        </div>
+        <div class="input-group" style="position: relative;">
+          <label>Jméno a příjmení</label>
+          <input type="text" id="regFullName" autocomplete="off" placeholder="Např. Jan Novák">
+          <ul id="fullNameAutocomplete" class="autocomplete-list hidden"></ul>
+        </div>
+        <div class="input-group">
+          <label>Pohlaví</label>
+          <select id="regGender">
+            <option value="male">Chlapec</option>
+            <option value="female">Dívka</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="regSubmitBtn">Zaregistrovat</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2>Registrovaní závodníci</h2>
+        </div>
+        <div id="regChildrenList"></div>
+      </div>
+    </div>
+
+    <!-- Results Tab -->
+    <div id="tab-results" class="tab-content hidden">
+      <div class="card mb-16">
+        <div class="card-header">
+          <h2>Výsledková listina</h2>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost btn-sm no-print" id="printResultsBtn">🖨 Vše</button>
+            <button class="btn btn-ghost btn-sm no-print" id="printBoysBtn" style="color:#60a5fa">🖨 Kluci</button>
+            <button class="btn btn-ghost btn-sm no-print" id="printGirlsBtn" style="color:#f472b6">🖨 Dívky</button>
+          </div>
+        </div>
+        <div class="input-group no-print">
+          <label>Závod</label>
+          <select id="resCompSelect">
+            <option value="">Vyberte závod...</option>
+          </select>
+        </div>
+        <div id="resCatTabs" class="tabs no-print mb-16"></div>
+        <div id="resultsTable"></div>
+        <div class="flex gap-8 mt-16 no-print" id="publishControls" style="display:none">
+          <button class="btn btn-success" id="publishBtn">📢 Zveřejnit výsledky</button>
+          <button class="btn btn-danger" id="unpublishBtn">Skrýt výsledky</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall Results Tab -->
+    <div id="tab-overall" class="tab-content hidden">
+      <div class="card mb-16">
+        <div class="card-header">
+          <h2>Celkové výsledky</h2>
+          <div class="flex gap-8">
+            <button class="btn btn-ghost btn-sm no-print" id="printOverallBtn">🖨 Vše</button>
+            <button class="btn btn-ghost btn-sm no-print" id="printOverallBoysBtn" style="color:#60a5fa">🖨 Kluci</button>
+            <button class="btn btn-ghost btn-sm no-print" id="printOverallGirlsBtn" style="color:#f472b6">🖨 Dívky</button>
+          </div>
+        </div>
+        <div class="input-group no-print">
+          <label>Série závodů</label>
+          <select id="overallSeasonSelect">
+            <option value="">Vyberte sérii...</option>
+          </select>
+        </div>
+        <div id="overallCatTabs" class="tabs no-print mb-16"></div>
+        <div id="overallResultsTable"></div>
+      </div>
+    </div>
+
+    <!-- Seasons Tab -->
+    <div id="tab-seasons" class="tab-content hidden">
+      <div class="card mb-16">
+        <div class="card-header">
+          <h2>Série závodů</h2>
+          <button class="btn btn-primary btn-sm" id="newSeasonBtn">+ Nová série</button>
+        </div>
+        <div id="seasonsList"></div>
+      </div>
+      <div id="seasonEditor" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h2 id="seasonEditorTitle">Nová série</h2>
+            <button class="btn btn-ghost btn-sm" id="closeSeasonEditor">✕</button>
+          </div>
+          <div class="input-group">
+            <label>Název série (např. Boulderděti 2026)</label>
+            <input type="text" id="seasonName" placeholder="Název">
+          </div>
+          <div class="input-group">
+            <label>Přiřazené závody</label>
+            <div id="seasonCompsCheckboxes" class="grid grid-2 gap-8" style="max-height: 200px; overflow-y: auto;">
+              <!-- Checkboxes injected by JS -->
+            </div>
+          </div>
+          <div class="flex gap-8">
+            <button class="btn btn-primary" id="saveSeasonBtn">Uložit</button>
+            <button class="btn btn-ghost" id="cancelSeasonBtn">Zrušit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="tab-users" class="tab-content hidden">
+      <div class="card mb-16">
+        <div class="card-header">
+          <h2>Přidat uživatele</h2>
+        </div>
+        <div class="grid grid-2 gap-8">
+          <div class="input-group">
+            <label>E-mail</label>
+            <input type="email" id="userEmail" placeholder="email@example.com">
+          </div>
+          <div class="input-group">
+            <label>Jméno a příjmení</label>
+            <input type="text" id="userName" placeholder="Jan Novák">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Role</label>
+          <select id="userRole">
+            <option value="recorder">Zapisovač</option>
+            <option value="admin">Administrátor</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="addUserBtn">Přidat uživatele</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h2>Seznam uživatelů</h2>
+        </div>
+        <div id="usersList"></div>
+      </div>
+    </div>
+
+    <!-- Recording Tab (embedded for admins) -->
+    <div id="tab-recording" class="tab-content hidden">
+      <div id="recorderEmbed"></div>
+    </div>
+  </div>
+
+  <!-- Modal overlay -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <script src="js/api.js?v=2"></script>
+  <script src="js/admin.js"></script>
+</body>
+
+</html>

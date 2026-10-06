@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje startovka | Lezecké závody</title>
+  <meta name="description" content="Osobní startovka a výsledky">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <div class="app-header">
+      <h1>🧗 Moje startovka</h1>
+      <p class="subtitle">Zadejte svůj přístupový klíč</p>
+    </div>
+
+    <div id="keyForm" class="card" style="max-width:450px;margin:0 auto;">
+      <div class="input-group">
+        <label>Přístupový klíč</label>
+        <input type="text" id="accessKey" placeholder="Např. A1B2C3D4E5F6" style="text-transform:uppercase;text-align:center;font-size:1.2rem;letter-spacing:2px;">
+      </div>
+      <div id="keyError" class="text-danger text-sm mb-12 hidden"></div>
+      <button class="btn btn-primary btn-block btn-lg" id="lookupBtn">Zobrazit startovku</button>
+    </div>
+
+    <div id="startlistView" class="hidden">
+      <button class="back-btn" id="backBtn">← Zadat jiný klíč</button>
+      <div class="card mb-16">
+        <div class="text-center">
+          <h2 id="childName" style="font-size:1.4rem;font-weight:800;"></h2>
+          <p id="childMeta" class="text-muted text-sm"></p>
+        </div>
+      </div>
+      <div id="bouldersView"></div>
+    </div>
+
+    <div class="text-center mt-16">
+      <a href="index.html" class="btn btn-ghost btn-sm">📊 Veřejné výsledky</a>
+    </div>
+  </div>
+
+  <script src="js/api.js?v=2"></script>
+  <script src="js/startlist.js"></script>
+</body>
+</html>

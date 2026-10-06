@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="favicon.png" type="image/png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zapisování | Lezecké závody</title>
+  <meta name="description" content="Zapisování výsledků lezeckých závodů">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-container" id="recorderRoot">
+    <div class="app-header">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1>🧗 Zapisování</h1>
+          <p class="subtitle" id="recUserInfo"></p>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="recLogoutBtn">Odhlásit</button>
+      </div>
+    </div>
+    <div id="recorderContent"></div>
+  </div>
+
+  <script src="js/api.js?v=2"></script>
+  <script src="js/recorder.js"></script>
+</body>
+</html>

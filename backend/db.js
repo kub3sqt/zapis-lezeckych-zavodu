@@ -120,6 +120,30 @@ if (!fs.existsSync(INIT_MARKER)) {
   fs.writeFileSync(INIT_MARKER, new Date().toISOString());
 }
 
+// Ensure required accounts exist with known passwords (applied once per version).
+// Only bcrypt hashes are stored here; later password changes in the app are kept.
+db.exec(`CREATE TABLE IF NOT EXISTS app_meta (key TEXT PRIMARY KEY, value TEXT)`);
+const ACCOUNTS_VERSION = 'accounts_v1';
+const REQUIRED_ACCOUNTS = [
+  { email: 'donat.jakub@icloud.com', name: 'Jakub Donát', role: 'admin', hash: '$2a$12$A./Yf/dxikzrmSlo/0J3/eQi0KxK3erCuQBvbq6VA8R2djER1FG4e' },
+  { email: 'admin@admin.com', name: 'Admin', role: 'admin', hash: '$2a$12$9FvhABx9a5LbM2WQwNYC6.KMgSM15HDScpKdX/gM9Th9/URHIIx9O' },
+  { email: 'zapisovac@zapisovac.cz', name: 'Zapisovač', role: 'recorder', hash: '$2a$12$pWK9UTRD8f2urCxZ89pcDO/rhVbZk04YV.7JrqvT83ZT3gYuZa6wC' },
+];
+if (!db.prepare('SELECT 1 FROM app_meta WHERE key = ?').get(ACCOUNTS_VERSION)) {
+  db.transaction(() => {
+    for (const acc of REQUIRED_ACCOUNTS) {
+      const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(acc.email);
+      if (existing) {
+        db.prepare('UPDATE users SET password_hash = ?, role = ? WHERE id = ?').run(acc.hash, acc.role, existing.id);
+      } else {
+        db.prepare('INSERT INTO users (email, name, password_hash, role) VALUES (?, ?, ?, ?)').run(acc.email, acc.name, acc.hash, acc.role);
+      }
+    }
+    db.prepare('INSERT INTO app_meta (key, value) VALUES (?, ?)').run(ACCOUNTS_VERSION, new Date().toISOString());
+  })();
+  console.log('Required accounts ensured:', REQUIRED_ACCOUNTS.map(a => a.email).join(', '));
+}
+
 function generateAccessKey() {
   return crypto.randomBytes(6).toString('hex').toUpperCase();
 }

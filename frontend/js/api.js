@@ -56,6 +56,41 @@ const api = {
   delete(path) { return this.request('DELETE', path); }
 };
 
+// Boulder scoring — mirrors backend/scoring.js.
+// Result of a boulder = attempt on which the best achievement was reached / points.
+const scoring = {
+  bestFrom(z1, z2, top) {
+    if (top > 0) return top === 1 ? 40 : 30;
+    if (z2 > 0) return 20;
+    if (z1 > 0) return 10;
+    return 0;
+  },
+
+  points(score) {
+    if (!score) return 0;
+    const best = score.best_achievement || 0;
+    if (best >= 30) {
+      if (score.top_attempts > 0) return score.top_attempts === 1 ? 40 : 30;
+      return best === 40 || score.attempts === 1 ? 40 : 30;
+    }
+    return best === 20 || best === 10 ? best : 0;
+  },
+
+  resultAttempts(score) {
+    if (!score) return 0;
+    const best = score.best_achievement || 0;
+    const total = score.attempts || 0;
+    if (best >= 30) return score.top_attempts || total;
+    if (best === 20) return score.zone2_attempts || total;
+    if (best === 10) return score.zone1_attempts || total;
+    return total;
+  },
+
+  text(score) {
+    return `${this.resultAttempts(score)}/${this.points(score)}`;
+  }
+};
+
 // Toast notifications
 function showToast(message, type = 'success') {
   const existing = document.querySelector('.toast');

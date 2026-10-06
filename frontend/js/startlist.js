@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
           statusText = 'Zkoušeno';
           statusColor = 'var(--danger)';
         }
-        scoreText = `${score.attempts}/${score.best_achievement}`;
+        scoreText = scoring.text(score);
       }
 
       card.innerHTML = `

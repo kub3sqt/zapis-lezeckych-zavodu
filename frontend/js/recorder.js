@@ -268,15 +268,28 @@
     if (!active) return;
 
     // Get current score from server data (not local)
-    const currentScore = active.score || { attempts: 0, best_achievement: 0 };
+    const currentScore = active.score || {};
     const attempts = currentScore.attempts || 0;
     const achievement = currentScore.best_achievement || 0;
+    const z1 = currentScore.zone1_attempts || 0;
+    const z2 = currentScore.zone2_attempts || 0;
+    const tp = currentScore.top_attempts || 0;
+    const points = scoring.points(currentScore);
+    const resultAtt = scoring.resultAttempts(currentScore);
+    // Older rows may have an achievement without the attempt number stored
+    const z1At = achievement >= 10 ? (z1 || resultAtt) : 0;
+    const z2At = achievement >= 20 ? (z2 || resultAtt) : 0;
+    const tpAt = achievement >= 30 ? (tp || resultAtt) : 0;
+    const minAttempts = Math.max(z1At, z2At, tpAt);
 
     let achievementLabel = '—';
     let achievementColorClass = '';
     if (achievement >= 30) { achievementLabel = 'TOP'; achievementColorClass = 'top'; }
     else if (achievement === 20) { achievementLabel = 'Zóna 2'; achievementColorClass = 'zone2'; }
     else if (achievement === 10) { achievementLabel = 'Zóna 1'; achievementColorClass = 'zone1'; }
+
+    const nextAttempt = Math.max(attempts, 1);
+    const atLabel = n => n ? `${n}. pokus` : '—';
 
     scoringArea.innerHTML = `
       <div class="scoring-panel">
@@ -287,24 +300,26 @@
 
         <div class="text-center mb-16">
           <div class="score-display" style="font-size:2rem">
-            <span class="score-attempts">${attempts}</span>
+            <span class="score-attempts">${resultAtt}</span>
             <span class="score-separator">/</span>
-            <span class="score-points ${achievementColorClass}">${achievement}</span>
+            <span class="score-points ${achievementColorClass}">${points}</span>
           </div>
-          <div class="text-muted text-xs mt-8">${achievementLabel}</div>
+          <div class="text-muted text-xs mt-8">Výsledek: ${achievementLabel}</div>
         </div>
 
         <div class="scoring-controls">
+          <div class="text-center text-xs text-muted">Pokusy celkem</div>
           <div class="attempts-control">
-            <button class="btn btn-icon btn-ghost" id="attMinus" ${attempts <= 0 ? 'disabled' : ''}>−</button>
+            <button class="btn btn-icon btn-ghost" id="attMinus" ${attempts <= minAttempts || attempts <= 0 ? 'disabled' : ''}>−</button>
             <div class="count">${attempts}</div>
             <button class="btn btn-icon btn-primary" id="attPlus">+</button>
           </div>
           <div class="zone-buttons">
-            <button class="btn btn-zone1 ${achievement >= 10 ? 'active' : ''}" id="btnZone1">Zóna 1<br><span class="text-xs">10b</span></button>
-            <button class="btn btn-zone2 ${achievement >= 20 ? 'active' : ''}" id="btnZone2">Zóna 2<br><span class="text-xs">20b</span></button>
-            <button class="btn btn-top ${achievement >= 30 ? 'active' : ''}" id="btnTop">TOP<br><span class="text-xs">${attempts <= 1 ? '40' : '30'}b</span></button>
+            <button class="btn btn-zone1 ${achievement >= 10 ? 'active' : ''}" id="btnZone1">Zóna 1<br><span class="text-xs">${z1At ? atLabel(z1At) : '10b'}</span></button>
+            <button class="btn btn-zone2 ${achievement >= 20 ? 'active' : ''}" id="btnZone2">Zóna 2<br><span class="text-xs">${z2At ? atLabel(z2At) : '20b'}</span></button>
+            <button class="btn btn-top ${achievement >= 30 ? 'active' : ''}" id="btnTop">TOP<br><span class="text-xs">${tpAt ? atLabel(tpAt) : (nextAttempt === 1 ? '40b' : '30b')}</span></button>
           </div>
+          <div class="text-center text-xs text-muted">Zóna / top se zapíše na ${nextAttempt}. pokus</div>
           <div class="flex gap-8 mt-8">
             <button class="btn btn-success btn-block" id="saveAndNext">💾 Uložit & pokračovat</button>
           </div>
@@ -313,37 +328,39 @@
       </div>
     `;
 
+    const save = (att, nz1, nz2, ntp) => updateScore(active, {
+      attempts: att,
+      zone1_attempts: nz1,
+      zone2_attempts: nz2,
+      top_attempts: ntp,
+      best_achievement: scoring.bestFrom(nz1, nz2, ntp)
+    }, queueKey, scoreMap);
+
     // Wire up scoring buttons
     document.getElementById('attPlus').addEventListener('click', async () => {
-      const newAttempts = attempts + 1;
-      await updateScore(active, newAttempts, achievement, queueKey, scoreMap);
+      await save(attempts + 1, z1At, z2At, tpAt);
     });
 
     document.getElementById('attMinus').addEventListener('click', async () => {
-      if (attempts <= 0) return;
-      const newAttempts = attempts - 1;
-      await updateScore(active, newAttempts, achievement, queueKey, scoreMap);
+      if (attempts <= 0 || attempts <= minAttempts) return;
+      await save(attempts - 1, z1At, z2At, tpAt);
     });
 
+    // Reaching a level records the current attempt number; lower levels count as reached too.
+    // Pressing an active level removes it (and everything above it).
     document.getElementById('btnZone1').addEventListener('click', async () => {
-      const newAch = achievement >= 10 ? 0 : 10; // Toggle
-      await updateScore(active, Math.max(attempts, 1), newAch, queueKey, scoreMap);
+      if (achievement >= 10) await save(attempts, 0, 0, 0);
+      else await save(nextAttempt, nextAttempt, 0, 0);
     });
 
     document.getElementById('btnZone2').addEventListener('click', async () => {
-      const newAch = achievement >= 20 ? 10 : 20; // Toggle or step down
-      await updateScore(active, Math.max(attempts, 1), newAch, queueKey, scoreMap);
+      if (achievement >= 20) await save(attempts, z1At, 0, 0);
+      else await save(nextAttempt, z1At || nextAttempt, nextAttempt, 0);
     });
 
     document.getElementById('btnTop').addEventListener('click', async () => {
-      let newAch;
-      if (achievement >= 30) {
-        newAch = 20; // Toggle off top
-      } else {
-        const att = Math.max(attempts, 1);
-        newAch = att === 1 ? 40 : 30;
-      }
-      await updateScore(active, Math.max(attempts, 1), newAch, queueKey, scoreMap);
+      if (achievement >= 30) await save(attempts, z1At, z2At, 0);
+      else await save(nextAttempt, z1At || nextAttempt, z2At || nextAttempt, nextAttempt);
     });
 
     document.getElementById('saveAndNext').addEventListener('click', () => {
@@ -368,6 +385,7 @@
     queueList.innerHTML = '';
     queue.forEach((qi, i) => {
       const sc = qi.score || { attempts: 0, best_achievement: 0 };
+      const hasScore = sc.best_achievement > 0 || sc.attempts > 0;
       const div = document.createElement('div');
       div.className = `queue-item ${i === activeIndex ? 'active-climber' : ''}`;
       div.innerHTML = `
@@ -376,7 +394,7 @@
           <span class="climber-gender badge ${qi.child.gender === 'male' ? 'badge-boys' : 'badge-girls'}">${qi.child.gender === 'male' ? '' : ''}</span>
           ${i === activeIndex ? ' <span class="badge badge-active">LEZE</span>' : ''}
         </div>
-        <div class="score-mini ${sc.best_achievement > 0 || sc.attempts > 0 ? 'has-score' : 'no-score'}">${sc.attempts}/${sc.best_achievement}</div>
+        <div class="score-mini ${hasScore ? 'has-score' : 'no-score'}">${scoring.text(sc)}</div>
       `;
       div.addEventListener('click', () => {
         activeIndex = i;
@@ -386,18 +404,16 @@
     });
   }
 
-  async function updateScore(queueItem, attempts, achievement, queueKey, scoreMap) {
+  async function updateScore(queueItem, newScore, queueKey, scoreMap) {
     try {
       await api.put('/api/scores', {
         child_id: queueItem.child.id,
         competition_id: competition.id,
         boulder_number: selectedBoulder,
-        attempts: attempts,
-        best_achievement: achievement
+        ...newScore
       });
 
       // Update local state
-      const newScore = { attempts, best_achievement: achievement };
       queueItem.score = newScore;
       scoreMap[queueItem.child.id] = newScore;
 

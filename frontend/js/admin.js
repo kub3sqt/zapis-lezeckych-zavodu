@@ -890,7 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       for (const b of relevantBoulders) {
         const score = scores.find(s => s.boulder_number === b.boulder_number);
-        const attempts = score ? score.attempts : 0;
+        const attempts = score ? scoring.resultAttempts(score) : 0;
         const achievement = score ? score.best_achievement : 0;
 
         html += `<div class="queue-item mb-8" id="editScore-${b.boulder_number}">
@@ -899,7 +899,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${b.gender !== 'both' ? `<span class="text-xs text-muted">(${b.gender === 'boys' ? 'kluci' : 'dívky'})</span>` : ''}
           </div>
           <div class="flex gap-8 items-center">
-            <label class="text-xs">Pokusy:</label>
+            <label class="text-xs" title="Pokus, na kterém padl výsledek (u nuly počet pokusů celkem)">Pokusy:</label>
             <input type="number" min="0" value="${attempts}" style="width:60px;padding:4px 8px" class="edit-attempts" data-bn="${b.boulder_number}">
             <select class="edit-achievement" data-bn="${b.boulder_number}" style="padding:4px 8px;width:auto">
               <option value="0" ${achievement === 0 ? 'selected' : ''}>—</option>
@@ -926,17 +926,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
           for (let i = 0; i < attemptInputs.length; i++) {
             const bn = parseInt(attemptInputs[i].dataset.bn);
-            const att = parseInt(attemptInputs[i].value) || 0;
-            let ach = parseInt(achievementSelects[i].value) || 0;
-            // Top on first attempt = 40
-            if (ach >= 30 && att === 1) ach = 40;
+            const ach = parseInt(achievementSelects[i].value) || 0;
+            const att = Math.max(parseInt(attemptInputs[i].value) || 0, ach > 0 ? 1 : 0);
+            const prev = scores.find(s => s.boulder_number === bn) || {};
+            // "Pokusy" is the attempt on which the selected level was reached;
+            // lower levels keep their earlier attempt number if it is not later than that.
+            const keep = (v) => (v > 0 && v <= att ? v : att);
+            const nz1 = ach >= 10 ? keep(prev.zone1_attempts) : 0;
+            const nz2 = ach >= 20 ? keep(prev.zone2_attempts) : 0;
+            const ntp = ach >= 30 ? att : 0;
+            const total = ach > 0 ? Math.max(prev.attempts || 0, att) : att;
 
             await api.put('/api/scores', {
               child_id: childId,
               competition_id: parseInt(resCompId),
               boulder_number: bn,
-              attempts: att,
-              best_achievement: ach
+              attempts: total,
+              zone1_attempts: nz1,
+              zone2_attempts: nz2,
+              top_attempts: ntp,
+              best_achievement: scoring.bestFrom(nz1, nz2, ntp)
             });
           }
           showToast('Výsledky uloženy');

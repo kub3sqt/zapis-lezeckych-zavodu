@@ -1,5 +1,6 @@
 const express = require('express');
 const { db } = require('../db');
+const { summarizeScores } = require('../scoring');
 const { authMiddleware, adminOnly } = require('../auth');
 
 const router = express.Router();
@@ -32,33 +33,7 @@ function calculateRankings(competitionId, categoryId, gender) {
       'SELECT * FROM scores WHERE child_id = ? AND competition_id = ?'
     ).all(child.id, competitionId);
 
-    let totalPoints = 0;
-    let totalAttempts = 0;
-    let totalTops = 0;
-    let totalZones = 0;
-    let topAttempts = 0;
-    let zoneAttempts = 0;
-
-    for (const score of scores) {
-      if (score.best_achievement >= 30) {
-        totalTops++;
-        topAttempts += score.attempts;
-        if (score.best_achievement === 40 || score.attempts === 1 || (score.top_attempts && score.top_attempts === 1)) {
-          totalPoints += 40;
-        } else {
-          totalPoints += 30;
-        }
-      } else if (score.best_achievement === 20) {
-        totalZones++;
-        zoneAttempts += score.attempts;
-        totalPoints += 20;
-      } else if (score.best_achievement === 10) {
-        totalZones++;
-        zoneAttempts += score.attempts;
-        totalPoints += 10;
-      }
-      totalAttempts += score.attempts;
-    }
+    const { totalPoints, totalAttempts, totalTops, totalZones, topAttempts, zoneAttempts } = summarizeScores(scores);
 
     return {
       ...child,
